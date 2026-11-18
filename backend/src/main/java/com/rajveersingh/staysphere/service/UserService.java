@@ -12,6 +12,8 @@ import com.rajveersingh.staysphere.entity.User;
 import com.rajveersingh.staysphere.enums.AccountStatus;
 import com.rajveersingh.staysphere.enums.ApprovalStatus;
 import com.rajveersingh.staysphere.enums.Role;
+import com.rajveersingh.staysphere.exception.BadRequestException;
+import com.rajveersingh.staysphere.exception.ResourceAlreadyExistsException;
 import com.rajveersingh.staysphere.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -27,17 +29,17 @@ public class UserService {
     public RegisterResponse register(RegisterRequest request) {
 
         if (request.getRole() != Role.TENANT && request.getRole() != Role.PG_OWNER) {
-            throw new IllegalArgumentException("Invalid registration role");
+            throw new BadRequestException("Invalid registration role");
         }
 
         String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
 
         if (repository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email is already registered");
+            throw new ResourceAlreadyExistsException("Email is already registered");
         }
 
         if (request.getPassword().getBytes(StandardCharsets.UTF_8).length > 72) {
-            throw new IllegalArgumentException("Password exceeds the maximum allowed byte length");
+            throw new BadRequestException("Password exceeds the maximum allowed byte length");
         }
 
         User user = new User();
@@ -58,7 +60,7 @@ public class UserService {
 
         User savedUser = repository.save(user);
 
-        String message = savedUser.getRole() == Role.TENANT ? "Registration successfull"
+        String message = savedUser.getRole() == Role.TENANT ? "Registration successful"
                 : "Registration successful. Awaiting admin approval.";
 
         return new RegisterResponse(
