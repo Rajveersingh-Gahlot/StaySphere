@@ -20,6 +20,7 @@ import com.rajveersingh.staysphere.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService service;
+    @Value("${jwt.expiration-ms}")
+    private long jwtExpirationMs;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -47,7 +50,7 @@ public class UserController {
                 .secure(false)
                 .sameSite("Lax")
                 .path("/")
-                .maxAge(Duration.ofHours(1))
+                .maxAge(Duration.ofMillis(jwtExpirationMs))
                 .build();
 
         return ResponseEntity.ok()

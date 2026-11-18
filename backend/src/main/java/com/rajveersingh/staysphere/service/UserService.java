@@ -21,7 +21,7 @@ import com.rajveersingh.staysphere.exception.ResourceAlreadyExistsException;
 import com.rajveersingh.staysphere.repository.UserRepository;
 import com.rajveersingh.staysphere.security.JwtService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -79,7 +79,7 @@ public class UserService {
                 message);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public LoginResult login(LoginRequest request) {
 
         String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
