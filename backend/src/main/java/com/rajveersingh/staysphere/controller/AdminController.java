@@ -37,4 +37,12 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/owners/{id}/reject")
+    public ResponseEntity<Void> rejectOwner(@PathVariable UUID id) {
+
+        service.rejectOwner(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

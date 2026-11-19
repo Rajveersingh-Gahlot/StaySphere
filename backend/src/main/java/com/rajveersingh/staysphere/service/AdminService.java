@@ -55,4 +55,21 @@ public class AdminService {
         user.setApprovalStatus(ApprovalStatus.APPROVED);
     }
 
+    @Transactional
+    public void rejectOwner(UUID id) {
+
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() != Role.PG_OWNER) {
+            throw new BadRequestException("User is not a PG Owner");
+        }
+
+        if (user.getApprovalStatus() != ApprovalStatus.PENDING) {
+            throw new BadRequestException("PG Owner is not pending approval");
+        }
+
+        user.setApprovalStatus(ApprovalStatus.REJECTED);
+    }
+
 }
