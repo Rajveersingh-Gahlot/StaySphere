@@ -1,6 +1,10 @@
 package com.rajveersingh.staysphere.service;
 
 import java.util.List;
+import java.util.UUID;
+
+import com.rajveersingh.staysphere.exception.BadRequestException;
+import com.rajveersingh.staysphere.exception.ResourceNotFoundException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,23 @@ public class AdminService {
                         user.getApprovalStatus(),
                         user.getCreatedAt()))
                 .toList();
+    }
+
+    @Transactional
+    public void approveOwner(UUID id) {
+
+        User user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() != Role.PG_OWNER) {
+            throw new BadRequestException("User is not a PG Owner");
+        }
+
+        if (user.getApprovalStatus() != ApprovalStatus.PENDING) {
+            throw new BadRequestException("PG Owner is not pending approval");
+        }
+
+        user.setApprovalStatus(ApprovalStatus.APPROVED);
     }
 
 }

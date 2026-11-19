@@ -82,4 +82,15 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problem);
         }
+
+        @ExceptionHandler(ResourceNotFoundException.class)
+        public ResponseEntity<ProblemDetail> handleResourceNotFound(
+                        ResourceNotFoundException ex) {
+
+                ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+
+                problem.setTitle("Resource Not Found");
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+        }
 }
