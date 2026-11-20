@@ -1,0 +1,17 @@
+package com.rajveersingh.staysphere.repository;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.rajveersingh.staysphere.entity.PgProperty;
+
+public interface PgPropertyRepository extends JpaRepository<PgProperty, UUID> {
+
+    List<PgProperty> findByOwner_id(UUID ownerId);
+
+    Optional<PgProperty> findByIdAndOwner_Id(UUID id, UUID ownerId);
+
+}
