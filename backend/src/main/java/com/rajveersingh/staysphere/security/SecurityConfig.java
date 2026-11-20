@@ -2,13 +2,15 @@
 package com.rajveersingh.staysphere.security;
 
 import jakarta.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
@@ -33,88 +37,124 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http)
+                        throws Exception {
 
-        CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+                CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
 
-        csrfRepository.setCookiePath("/");
-        csrfRepository.setCookieCustomizer(cookie -> cookie.sameSite("Lax"));
+                csrfRepository.setCookiePath("/");
+                csrfRepository.setCookieCustomizer(
+                                cookie -> cookie.sameSite("Lax"));
 
-        CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
+                CsrfTokenRequestAttributeHandler csrfHandler = new CsrfTokenRequestAttributeHandler();
 
-        http
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(csrfRepository)
-                        .csrfTokenRequestHandler(csrfHandler))
+                http
+                                .csrf(csrf -> csrf
+                                                .csrfTokenRepository(csrfRepository)
+                                                .csrfTokenRequestHandler(csrfHandler)
+                                                .sessionAuthenticationStrategy(
+                                                                new NullAuthenticatedSessionStrategy()))
 
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .cors(cors -> cors
+                                                .configurationSource(corsConfigurationSource()))
 
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/users/register",
-                                "/api/users/login")
-                        .permitAll()
+                                .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/users/csrf")
-                        .permitAll()
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/users/register",
+                                                                "/api/users/login")
+                                                .permitAll()
 
-                        .requestMatchers("/api/admin/**")
-                        .hasRole("SUPER_ADMIN")
+                                                .requestMatchers(
+                                                                HttpMethod.GET,
+                                                                "/api/users/csrf")
+                                                .permitAll()
 
-                        .requestMatchers("/api/owner/**")
-                        .hasRole("PG_OWNER")
+                                                .requestMatchers("/api/admin/**")
+                                                .hasRole("SUPER_ADMIN")
 
-                        .requestMatchers("/api/tenant/**")
-                        .hasRole("TENANT")
+                                                .requestMatchers("/api/owner/**")
+                                                .hasRole("PG_OWNER")
 
-                        .anyRequest().authenticated())
+                                                .requestMatchers("/api/tenant/**")
+                                                .hasRole("TENANT")
 
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, exception) -> response.sendError(
-                                HttpServletResponse.SC_UNAUTHORIZED))
-                        .accessDeniedHandler((request, response, exception) -> response.sendError(
-                                HttpServletResponse.SC_FORBIDDEN)))
+                                                .anyRequest().authenticated())
 
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint(
+                                                                (request, response, exception) -> response.sendError(
+                                                                                HttpServletResponse.SC_UNAUTHORIZED))
+                                                .accessDeniedHandler(
+                                                                (request, response, exception) -> response.sendError(
+                                                                                HttpServletResponse.SC_FORBIDDEN)))
 
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class);
+                                .formLogin(form -> form.disable())
+                                .httpBasic(basic -> basic.disable())
 
-        return http.build();
-    }
+                                .logout(logout -> logout
+                                                .logoutUrl("/api/users/logout")
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+                                                .addLogoutHandler(
+                                                                (request, response, authentication) -> {
 
-        CorsConfiguration config = new CorsConfiguration();
+                                                                        ResponseCookie cookie = ResponseCookie
+                                                                                        .from("access_token", "")
+                                                                                        .httpOnly(true)
+                                                                                        .secure(false)
+                                                                                        .sameSite("Lax")
+                                                                                        .path("/")
+                                                                                        .maxAge(0)
+                                                                                        .build();
 
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
-        config.setAllowCredentials(true);
+                                                                        response.addHeader(
+                                                                                        HttpHeaders.SET_COOKIE,
+                                                                                        cookie.toString());
+                                                                })
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                                                .logoutSuccessHandler(
+                                                                new HttpStatusReturningLogoutSuccessHandler(
+                                                                                HttpStatus.NO_CONTENT)))
 
-        source.registerCorsConfiguration("/**", config);
+                                .addFilterBefore(
+                                                jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
 
-        return source;
-    }
+                return http.build();
+        }
+
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+
+                CorsConfiguration config = new CorsConfiguration();
+
+                config.setAllowedOrigins(
+                                List.of("http://localhost:5173"));
+
+                config.setAllowedMethods(
+                                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+                config.setAllowedHeaders(
+                                List.of("Content-Type", "X-XSRF-TOKEN"));
+
+                config.setAllowCredentials(true);
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+                source.registerCorsConfiguration("/**", config);
+
+                return source;
+        }
 }

@@ -80,7 +80,7 @@ public class AdminService {
     public void suspendOwner(UUID id) {
 
         User user = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User no found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getRole() != Role.PG_OWNER) {
             throw new BadRequestException("User is not a PG Owner");

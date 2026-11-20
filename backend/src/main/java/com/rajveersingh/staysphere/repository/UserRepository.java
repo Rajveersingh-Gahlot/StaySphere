@@ -24,5 +24,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     long countByRoleAndApprovalStatus(Role role, ApprovalStatus approvalStatus);
 
-    long countByRoleAndAccountStatus(Role role,AccountStatus accountStatus);
+    long countByRoleAndAccountStatus(Role role, AccountStatus accountStatus);
 }
