@@ -9,7 +9,7 @@ import com.rajveersingh.staysphere.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.rajveersingh.staysphere.dto.PendingOwnerResponse;
+import com.rajveersingh.staysphere.dto.OwnerResponse;
 import com.rajveersingh.staysphere.entity.User;
 import com.rajveersingh.staysphere.enums.ApprovalStatus;
 import com.rajveersingh.staysphere.enums.Role;
@@ -24,17 +24,11 @@ public class AdminService {
     private final UserRepository repository;
 
     @Transactional(readOnly = true)
-    public List<PendingOwnerResponse> getPendingOwners() {
+    public List<OwnerResponse> getPendingOwners() {
         List<User> users = repository.findByRoleAndApprovalStatus(Role.PG_OWNER, ApprovalStatus.PENDING);
 
         return users.stream()
-                .map(user -> new PendingOwnerResponse(
-                        user.getId(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getPhoneNumber(),
-                        user.getApprovalStatus(),
-                        user.getCreatedAt()))
+                .map(this::mapToOwnerResponse)
                 .toList();
     }
 
@@ -71,5 +65,25 @@ public class AdminService {
 
         user.setApprovalStatus(ApprovalStatus.REJECTED);
     }
+
+    @Transactional(readOnly=true)
+    public List<OwnerResponse> getAllOwners(){
+        return repository.findByRole(Role.PG_OWNER)
+            .stream()
+            .map(this::mapToOwnerResponse)
+            .toList();
+    }
+
+    private OwnerResponse mapToOwnerResponse(User user) {
+    return new OwnerResponse(
+            user.getId(),
+            user.getName(),
+            user.getEmail(),
+            user.getPhoneNumber(),
+            user.getApprovalStatus(),
+            user.getAccountStatus(),
+            user.getCreatedAt()
+    );
+}
 
 }

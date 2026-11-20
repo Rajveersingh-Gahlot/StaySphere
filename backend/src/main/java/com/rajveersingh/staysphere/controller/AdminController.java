@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.rajveersingh.staysphere.dto.PendingOwnerResponse;
+import com.rajveersingh.staysphere.dto.OwnerResponse;
 import com.rajveersingh.staysphere.service.AdminService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,8 @@ public class AdminController {
     private final AdminService service;
 
     @GetMapping("/owners/pending")
-    public ResponseEntity<List<PendingOwnerResponse>> getPendingOwners() {
-        List<PendingOwnerResponse> response = service.getPendingOwners();
+    public ResponseEntity<List<OwnerResponse>> getPendingOwners() {
+        List<OwnerResponse> response = service.getPendingOwners();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -43,6 +43,12 @@ public class AdminController {
         service.rejectOwner(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/owners")
+    public ResponseEntity<List<OwnerResponse>> getallOwners() {
+        List<OwnerResponse> response = service.getAllOwners();
+        return ResponseEntity.ok(response);
     }
 
 }
