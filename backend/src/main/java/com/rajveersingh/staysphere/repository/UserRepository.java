@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.rajveersingh.staysphere.entity.User;
+import com.rajveersingh.staysphere.enums.AccountStatus;
 import com.rajveersingh.staysphere.enums.ApprovalStatus;
 import com.rajveersingh.staysphere.enums.Role;
 
@@ -18,4 +19,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByRoleAndApprovalStatus(Role role, ApprovalStatus approvalStatus);
 
     List<User> findByRole(Role role);
+
+    long countByRole(Role role);
+
+    long countByRoleAndApprovalStatus(Role role, ApprovalStatus approvalStatus);
+
+    long countByRoleAndAccountStatus(Role role,AccountStatus accountStatus);
 }

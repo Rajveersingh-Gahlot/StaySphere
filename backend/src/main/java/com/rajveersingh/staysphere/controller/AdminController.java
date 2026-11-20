@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rajveersingh.staysphere.dto.AdminDashboardResponse;
 import com.rajveersingh.staysphere.dto.OwnerResponse;
 import com.rajveersingh.staysphere.service.AdminService;
 
@@ -46,9 +47,26 @@ public class AdminController {
     }
 
     @GetMapping("/owners")
-    public ResponseEntity<List<OwnerResponse>> getallOwners() {
+    public ResponseEntity<List<OwnerResponse>> getAllOwners() {
         List<OwnerResponse> response = service.getAllOwners();
         return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/owners/{id}/suspend")
+    public ResponseEntity<Void> suspendOwner(@PathVariable UUID id) {
+        service.suspendOwner(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/owners/{id}/activate")
+    public ResponseEntity<Void> activateOwner(@PathVariable UUID id) {
+        service.activateOwner(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dashboard/summary")
+    public ResponseEntity<AdminDashboardResponse> getDashboardSummary() {
+        return ResponseEntity.ok(service.getDashboardSummary());
     }
 
 }
