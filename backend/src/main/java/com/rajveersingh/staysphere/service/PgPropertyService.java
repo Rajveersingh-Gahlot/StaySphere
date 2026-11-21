@@ -100,6 +100,18 @@ public class PgPropertyService {
         return toPropertyResponse(property);
     }
 
+    @Transactional
+    public void deleteProperty(UUID id, UUID ownerId) {
+        PgProperty property = propertyRepository.findByIdAndOwner_Id(id, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        if (property.getStatus() != PropertyStatus.DRAFT) {
+            throw new BadRequestException("Only DRAFT property can be deleted");
+        }
+
+        propertyRepository.delete(property);
+    }
+
     private PropertyResponse toPropertyResponse(PgProperty property) {
 
         PropertyResponse response = new PropertyResponse();

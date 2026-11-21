@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,6 +71,17 @@ public class PgPropertyController {
         PropertyResponse response = propertyService.updateProperty(id, ownerId, request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProperty(@PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID ownerId = getOwnerId(userDetails);
+
+        propertyService.deleteProperty(id, ownerId);
+
+        return ResponseEntity.noContent().build();
     }
 
     private UUID getOwnerId(UserDetails userDetails) {
