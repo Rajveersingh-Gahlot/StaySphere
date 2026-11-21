@@ -10,7 +10,7 @@ import com.rajveersingh.staysphere.entity.PgProperty;
 
 public interface PgPropertyRepository extends JpaRepository<PgProperty, UUID> {
 
-    List<PgProperty> findByOwner_id(UUID ownerId);
+    List<PgProperty> findByOwner_Id(UUID ownerId);
 
     Optional<PgProperty> findByIdAndOwner_Id(UUID id, UUID ownerId);
 
