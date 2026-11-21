@@ -1,6 +1,7 @@
 package com.rajveersingh.staysphere.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -65,6 +66,15 @@ public class PgPropertyService {
         return properties.stream()
                 .map(this::toPropertyResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PropertyResponse getPropertyById(UUID propertyId, UUID ownerId) {
+        PgProperty property = propertyRepository
+                .findByIdAndOwner_Id(propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        return toPropertyResponse(property);
     }
 
     private PropertyResponse toPropertyResponse(PgProperty property) {
