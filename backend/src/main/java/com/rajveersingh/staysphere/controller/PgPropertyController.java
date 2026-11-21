@@ -10,12 +10,14 @@ import com.rajveersingh.staysphere.service.PgPropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -27,14 +29,28 @@ public class PgPropertyController {
     private final PgPropertyService propertyService;
 
     @PostMapping
-    public ResponseEntity<PropertyResponse>createProperty(
-        @Valid @RequestBody CreatePropertyRequest request,
-        @AuthenticationPrincipal  UserDetails userDetails) {
+    public ResponseEntity<PropertyResponse> createProperty(
+            @Valid @RequestBody CreatePropertyRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-        UUID ownerId = UUID.fromString(userDetails.getUsername());
+        UUID ownerId = getOwnerId(userDetails);
         PropertyResponse response = propertyService.createProperty(request, ownerId);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PropertyResponse>> getMyProperties(@AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID ownerId = getOwnerId(userDetails);
+
+        List<PropertyResponse> properties = propertyService.getMyProperties(ownerId);
+
+        return ResponseEntity.ok(properties);
+    }
+
+    private UUID getOwnerId(UserDetails userDetails) {
+        return UUID.fromString(userDetails.getUsername());
     }
 
 }

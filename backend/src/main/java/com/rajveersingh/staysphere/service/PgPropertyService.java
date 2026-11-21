@@ -1,5 +1,6 @@
 package com.rajveersingh.staysphere.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import com.rajveersingh.staysphere.exception.ResourceNotFoundException;
 import com.rajveersingh.staysphere.repository.PgPropertyRepository;
 import com.rajveersingh.staysphere.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -53,21 +54,37 @@ public class PgPropertyService {
 
         PgProperty savedProperty = propertyRepository.save(property);
 
+        return toPropertyResponse(savedProperty);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PropertyResponse> getMyProperties(UUID ownerId) {
+
+        List<PgProperty> properties = propertyRepository.findByOwner_Id(ownerId);
+
+        return properties.stream()
+                .map(this::toPropertyResponse)
+                .toList();
+    }
+
+    private PropertyResponse toPropertyResponse(PgProperty property) {
+
         PropertyResponse response = new PropertyResponse();
 
-        response.setId(savedProperty.getId());
-        response.setOwnerId(owner.getId());
-        response.setName(savedProperty.getName());
-        response.setDescription(savedProperty.getDescription());
-        response.setAddress(savedProperty.getAddress());
-        response.setCity(savedProperty.getCity());
-        response.setState(savedProperty.getState());
-        response.setPincode(savedProperty.getPincode());
-        response.setPgType(savedProperty.getPgType());
-        response.setStatus(savedProperty.getStatus());
-        response.setCreatedAt(savedProperty.getCreatedAt());
-        response.setUpdatedAt(savedProperty.getUpdatedAt());
+        response.setId(property.getId());
+        response.setOwnerId(property.getOwner().getId());
+        response.setName(property.getName());
+        response.setDescription(property.getDescription());
+        response.setAddress(property.getAddress());
+        response.setCity(property.getCity());
+        response.setState(property.getState());
+        response.setPincode(property.getPincode());
+        response.setPgType(property.getPgType());
+        response.setStatus(property.getStatus());
+        response.setCreatedAt(property.getCreatedAt());
+        response.setUpdatedAt(property.getUpdatedAt());
 
         return response;
     }
+
 }
