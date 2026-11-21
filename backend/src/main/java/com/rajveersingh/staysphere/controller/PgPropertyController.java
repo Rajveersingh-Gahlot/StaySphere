@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.rajveersingh.staysphere.dto.property.CreatePropertyRequest;
 import com.rajveersingh.staysphere.dto.property.PropertyResponse;
+import com.rajveersingh.staysphere.dto.property.UpdatePropertyRequest;
 import com.rajveersingh.staysphere.service.PgPropertyService;
 
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
@@ -57,6 +59,17 @@ public class PgPropertyController {
         PropertyResponse property = propertyService.getPropertyById(id, ownerId);
 
         return ResponseEntity.ok(property);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PropertyResponse> updateProperty(@PathVariable UUID id,
+            @Valid @RequestBody UpdatePropertyRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        UUID ownerId = getOwnerId(userDetails);
+
+        PropertyResponse response = propertyService.updateProperty(id, ownerId, request);
+
+        return ResponseEntity.ok(response);
     }
 
     private UUID getOwnerId(UserDetails userDetails) {

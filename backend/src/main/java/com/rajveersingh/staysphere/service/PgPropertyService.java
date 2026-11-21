@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.rajveersingh.staysphere.dto.property.CreatePropertyRequest;
 import com.rajveersingh.staysphere.dto.property.PropertyResponse;
+import com.rajveersingh.staysphere.dto.property.UpdatePropertyRequest;
 import com.rajveersingh.staysphere.entity.PgProperty;
 import com.rajveersingh.staysphere.entity.User;
 import com.rajveersingh.staysphere.enums.AccountStatus;
@@ -73,6 +74,28 @@ public class PgPropertyService {
         PgProperty property = propertyRepository
                 .findByIdAndOwner_Id(propertyId, ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        return toPropertyResponse(property);
+    }
+
+    @Transactional
+    public PropertyResponse updateProperty(
+            UUID id,
+            UUID ownerId,
+            UpdatePropertyRequest request) {
+
+        PgProperty property = propertyRepository
+                .findByIdAndOwner_Id(id, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        property.setName(request.getName().trim());
+        property.setDescription(request.getDescription());
+        property.setAddress(request.getAddress().trim());
+        property.setCity(request.getCity().trim());
+        property.setState(request.getState().trim());
+        property.setPincode(request.getPincode());
+
+        propertyRepository.flush();
 
         return toPropertyResponse(property);
     }
