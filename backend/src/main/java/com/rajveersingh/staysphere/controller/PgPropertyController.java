@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.rajveersingh.staysphere.dto.property.CreatePropertyRequest;
 import com.rajveersingh.staysphere.dto.property.PropertyResponse;
 import com.rajveersingh.staysphere.dto.property.UpdatePropertyRequest;
+import com.rajveersingh.staysphere.dto.property.UpdatePropertyStatusRequest;
 import com.rajveersingh.staysphere.service.PgPropertyService;
 
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -82,6 +84,19 @@ public class PgPropertyController {
         propertyService.deleteProperty(id, ownerId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<PropertyResponse> updatePropertyStatus(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdatePropertyStatusRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID ownerId = getOwnerId(userDetails);
+
+        PropertyResponse response = propertyService.updatePropertyStatus(id, ownerId, request);
+
+        return ResponseEntity.ok(response);
     }
 
     private UUID getOwnerId(UserDetails userDetails) {

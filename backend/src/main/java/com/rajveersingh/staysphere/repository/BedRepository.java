@@ -16,4 +16,6 @@ public interface BedRepository extends JpaRepository<Bed, UUID> {
     Optional<Bed> findByIdAndRoom_IdAndRoom_Property_Owner_Id(UUID bedId, UUID roomId, UUID ownerId);
 
     boolean existsByRoom_IdAndBedNumber(UUID roomId, String bedNumber);
+
+    boolean existsByRoom_Id(UUID roomId);
 }
