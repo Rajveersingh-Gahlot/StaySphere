@@ -108,11 +108,12 @@ public class BedService {
 
         bed.setMonthlyRent(request.getMonthlyRent());
 
-        Bed updatedBed = bedRepository.save(bed);
+        Bed updatedBed = bedRepository.saveAndFlush(bed);
 
         return toBedResponse(updatedBed);
     }
 
+    @Transactional
     public void deleteBed(UUID propertyId, UUID ownerId, UUID roomId, UUID bedId) {
 
         Room room = roomRepository
