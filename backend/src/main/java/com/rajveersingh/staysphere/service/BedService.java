@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.rajveersingh.staysphere.dto.bed.BedResponse;
 import com.rajveersingh.staysphere.dto.bed.CreateBedRequest;
+import com.rajveersingh.staysphere.dto.bed.UpdateBedRequest;
 import com.rajveersingh.staysphere.entity.Bed;
 import com.rajveersingh.staysphere.entity.Room;
 import com.rajveersingh.staysphere.enums.property.PropertyStatus;
@@ -75,6 +76,58 @@ public class BedService {
                 .orElseThrow(() -> new ResourceNotFoundException("Bed not found"));
 
         return toBedResponse(bed);
+    }
+
+    @Transactional
+    public BedResponse updateBed(UUID propertyId, UUID ownerId, UUID roomId, UUID bedId, UpdateBedRequest request) {
+
+        Room room = roomRepository
+                .findByIdAndProperty_IdAndProperty_Owner_Id(
+                        roomId, propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+
+        Bed bed = bedRepository
+                .findByIdAndRoom_IdAndRoom_Property_Owner_Id(
+                        bedId, roomId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bed not found"));
+
+        String bedNumber = request.getBedNumber().trim();
+
+        if (!bed.getBedNumber().equals(bedNumber)) {
+
+            if (room.getProperty().getStatus() == PropertyStatus.ACTIVE) {
+                throw new BadRequestException("Cannot change bed number in an active property");
+            }
+
+            if (bedRepository.existsByRoom_IdAndBedNumber(roomId, bedNumber)) {
+                throw new ResourceAlreadyExistsException("Bed number already exists in this room");
+            }
+
+            bed.setBedNumber(bedNumber);
+        }
+
+        bed.setMonthlyRent(request.getMonthlyRent());
+
+        Bed updatedBed = bedRepository.save(bed);
+
+        return toBedResponse(updatedBed);
+    }
+
+    public void deleteBed(UUID propertyId, UUID ownerId, UUID roomId, UUID bedId) {
+
+        Room room = roomRepository
+                .findByIdAndProperty_IdAndProperty_Owner_Id(roomId, propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+
+        Bed bed = bedRepository
+                .findByIdAndRoom_IdAndRoom_Property_Owner_Id(bedId, roomId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bed not found"));
+
+        if (room.getProperty().getStatus() == PropertyStatus.ACTIVE) {
+            throw new BadRequestException("Cannot delete beds from an active property");
+        }
+
+        bedRepository.delete(bed);
     }
 
     private BedResponse toBedResponse(Bed bed) {
