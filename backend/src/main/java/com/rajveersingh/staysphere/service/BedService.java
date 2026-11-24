@@ -1,5 +1,6 @@
 package com.rajveersingh.staysphere.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -50,6 +51,30 @@ public class BedService {
         Bed savedBed = bedRepository.save(bed);
 
         return toBedResponse(savedBed);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BedResponse> getAllBeds(UUID propertyId, UUID roomId, UUID ownerId) {
+        roomRepository.findByIdAndProperty_IdAndProperty_Owner_Id(roomId, propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+
+        List<Bed> beds = bedRepository.findByRoom_IdAndRoom_Property_Owner_Id(roomId, ownerId);
+
+        return beds.stream()
+                .map(this::toBedResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public BedResponse getBedById(UUID propertyId, UUID ownerId, UUID roomId, UUID bedId) {
+
+        roomRepository.findByIdAndProperty_IdAndProperty_Owner_Id(roomId, propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+
+        Bed bed = bedRepository.findByIdAndRoom_IdAndRoom_Property_Owner_Id(bedId, roomId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bed not found"));
+
+        return toBedResponse(bed);
     }
 
     private BedResponse toBedResponse(Bed bed) {
