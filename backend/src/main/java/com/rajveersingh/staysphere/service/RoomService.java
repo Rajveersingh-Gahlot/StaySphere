@@ -115,7 +115,7 @@ public class RoomService {
 
         room.setDescription(request.getDescription());
 
-        Room savedRoom = roomRepository.save(room);
+        Room savedRoom = roomRepository.saveAndFlush(room);
 
         return toRoomResponse(savedRoom);
     }
