@@ -1,6 +1,7 @@
 package com.rajveersingh.staysphere.service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -84,6 +85,20 @@ public class PropertyImageService {
         PropertyImage savedImage = propertyImageRepository.saveAndFlush(image);
 
         return toPropertyImageResponse(savedImage);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PropertyImageResponse> getAlImages(UUID propertyId, UUID ownerId) {
+
+        propertyRepository.findByIdAndOwner_Id(propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        List<PropertyImage> images = propertyImageRepository
+                .findByProperty_IdAndProperty_Owner_Id(propertyId, ownerId);
+
+        return images.stream()
+                .map(this::toPropertyImageResponse)
+                .toList();
     }
 
     private void validateImage(MultipartFile file) {
