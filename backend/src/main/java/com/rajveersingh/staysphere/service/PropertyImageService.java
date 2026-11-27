@@ -88,7 +88,7 @@ public class PropertyImageService {
     }
 
     @Transactional(readOnly = true)
-    public List<PropertyImageResponse> getAlImages(UUID propertyId, UUID ownerId) {
+    public List<PropertyImageResponse> getAllImages(UUID propertyId, UUID ownerId) {
 
         propertyRepository.findByIdAndOwner_Id(propertyId, ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
@@ -99,6 +99,33 @@ public class PropertyImageService {
         return images.stream()
                 .map(this::toPropertyImageResponse)
                 .toList();
+    }
+
+    @Transactional
+    public PropertyImageResponse setCoverImage(UUID propertyId, UUID ownerId, UUID imageId) {
+
+        propertyRepository.findOneByIdAndOwner_Id(propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        PropertyImage selectedImage = propertyImageRepository
+                .findByIdAndProperty_IdAndProperty_Owner_Id(imageId, propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found"));
+
+        if (selectedImage.isCover()) {
+            return toPropertyImageResponse(selectedImage);
+        }
+
+        propertyImageRepository.findByProperty_IdAndIsCoverTrue(propertyId)
+                .ifPresent(currentCover -> {
+                    currentCover.setCover(false);
+                    propertyImageRepository.saveAndFlush(currentCover);
+                });
+
+        selectedImage.setCover(true);
+
+        PropertyImage savedImage = propertyImageRepository.saveAndFlush(selectedImage);
+
+        return toPropertyImageResponse(savedImage);
     }
 
     private void validateImage(MultipartFile file) {

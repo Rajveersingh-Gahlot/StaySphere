@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,10 +46,23 @@ public class PropertyImageController {
     public ResponseEntity<List<PropertyImageResponse>> getAllImages(
             @PathVariable UUID propertyId,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
+
         UUID ownerId = getOwnerId(userDetails);
 
-        List<PropertyImageResponse> response = propertyImageService.getAlImages(propertyId,ownerId);
+        List<PropertyImageResponse> response = propertyImageService.getAllImages(propertyId, ownerId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{imageId}/cover")
+    public ResponseEntity<PropertyImageResponse> setCoverImage(
+            @PathVariable UUID propertyId,
+            @PathVariable UUID imageId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID ownerId = getOwnerId(userDetails);
+
+        PropertyImageResponse response = propertyImageService.setCoverImage(propertyId, ownerId, imageId);
 
         return ResponseEntity.ok(response);
     }
