@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,6 +66,19 @@ public class PropertyImageController {
         PropertyImageResponse response = propertyImageService.setCoverImage(propertyId, ownerId, imageId);
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{imageId}")
+    public ResponseEntity<Void> deleteImage(
+            @PathVariable UUID propertyId,
+            @PathVariable UUID imageId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        UUID ownerId = getOwnerId(userDetails);
+
+        propertyImageService.deleteImage(propertyId, ownerId, imageId);
+
+        return ResponseEntity.noContent().build();
     }
 
     private UUID getOwnerId(UserDetails userDetails) {

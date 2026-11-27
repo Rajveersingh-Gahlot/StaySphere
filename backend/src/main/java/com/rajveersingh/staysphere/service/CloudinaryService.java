@@ -25,10 +25,24 @@ public class CloudinaryService {
                 ObjectUtils.asMap(
                         "resource_type", "image",
                         "asset_folder", folder,
-                        "allowed_formats", List.of("jpg", "jpeg", "png", "webp")
-                )
-        );
+                        "allowed_formats", List.of("jpg", "jpeg", "png", "webp")));
         return uploadResult;
+    }
+
+    public void deleteImage(String publicId) throws IOException {
+
+        Map<?, ?> deleteResult = cloudinary.uploader().destroy(
+                publicId,
+                ObjectUtils.asMap(
+                        "resource_type", "image",
+                        "invalidate", true));
+
+        Object result = deleteResult.get("result");
+
+        if (!"ok".equals(result) && !"not found".equals(result)) {
+            throw new IOException("Image deletion failed");
+        }
+
     }
 
 }

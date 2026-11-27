@@ -128,6 +128,37 @@ public class PropertyImageService {
         return toPropertyImageResponse(savedImage);
     }
 
+    @Transactional
+    public void deleteImage(UUID propertyId, UUID ownerId, UUID imageId) {
+
+        propertyRepository.findOneByIdAndOwner_Id(propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Property not found"));
+
+        PropertyImage image = propertyImageRepository
+                .findByIdAndProperty_IdAndProperty_Owner_Id(imageId, propertyId, ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found"));
+
+        boolean wasCover = image.isCover();
+
+        try {
+            cloudinaryService.deleteImage(image.getPublicId());
+        } catch (IOException | RuntimeException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Image deletion failed", ex);
+        }
+
+        propertyImageRepository.delete(image);
+        propertyImageRepository.flush();
+
+        if (wasCover) {
+            propertyImageRepository
+                    .findFirstByProperty_IdOrderByCreatedAtAscIdAsc(propertyId)
+                    .ifPresent(nextCover -> {
+                        nextCover.setCover(true);
+                        propertyImageRepository.saveAndFlush(nextCover);
+                    });
+        }
+    }
+
     private void validateImage(MultipartFile file) {
 
         if (file == null || file.isEmpty()) {
